@@ -5,9 +5,9 @@ const usersCollection = db.collection("users");
 
 const run = async () => {
   try {
-    await getUsersExample();
+    // await getUsersExample();
     // await task1();
-    // await task2();
+    await task2();
     // await task3();
     // await task4();
     // await task5();
@@ -28,24 +28,25 @@ run();
 
 // #### Users
 // - Get users example
-async function getUsersExample () {
-  try {
-    const [allUsers, firstUser] = await Promise.all([
-      usersCollection.find().toArray(),
-      usersCollection.findOne(),
-    ])
+// async function getUsersExample () {
+//   try {
+//     const [allUsers, firstUser] = await Promise.all([
+//       usersCollection.find().toArray(),
+//       usersCollection.findOne(),
+//     ])
 
-    console.log('allUsers', allUsers);
-    console.log('firstUser', firstUser);
-  } catch (err) {
-    console.error('getUsersExample', err);
-  }
-}
+//     console.log('allUsers', allUsers);
+//     console.log('firstUser', firstUser);
+//   } catch (err) {
+//     console.error('getUsersExample', err);
+//   }
+// }
 
 // - Get all users, sort them by age (ascending), and return only 5 records with firstName, lastName, and age fields.
 async function task1 () {
   try {
-
+		const res = await usersCollection.find({}).sort({ age: 'asc' }).limit(5).toArray();
+		console.log(res);
   } catch (err) {
     console.error('task1', err)
   }
