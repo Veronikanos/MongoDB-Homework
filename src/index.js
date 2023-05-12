@@ -46,7 +46,7 @@ async function getUsersExample () {
 async function task1 () {
   try {
 		const res = await usersCollection.find({}).sort({ age: 'asc' }).limit(5).toArray();
-		console.log(res);
+		console.log(res.toArray());
   } catch (err) {
     console.error('task1', err)
   }
@@ -55,10 +55,11 @@ async function task1 () {
 // - Add new field 'skills: []" for all users where age >= 25 && age < 30 or tags includes 'Engineering'
 async function task2 () {
   try {
-    await usersCollection.updateMany({ $or: [
+   const res = await usersCollection.updateMany({ $or: [
 			{ age: { $gte: 25, $lt: 30 } },
 			{tags: { $in: ['Engineering']}}
-		]}, {$set: {skills: []}})
+		]}, {$set: {skills: []}});
+		console.log(res);
   } catch (err) {
     console.error('task2', err)
   }
@@ -82,14 +83,15 @@ async function task3() {
 //   Set firstName: "Jason", lastName: "Wood", tags: ['a', 'b', 'c'], department: 'Support'
 async function task4 () {
   try { 
-await usersCollection.findOneAndReplace(
+const res = await usersCollection.findOneAndReplace(
 		{ email: { $regex: /^john/i }, "address.state": "CA" }, 
 		{
-			firstName: "John", 
+			firstName: "Jason", 
 		lastName: "Wood", 
 		tags: ['a', 'b', 'c'], 
 		department: 'Support' 
-})
+});
+console.log(res);
   } catch (err) {
     console.log('task4', err);
   }
@@ -98,7 +100,10 @@ await usersCollection.findOneAndReplace(
 // - Pull tag 'c' from the first document where firstName: "Jason", lastName: "Wood"
 async function task5 () {
   try {
-
+		const res = await usersCollection.updateOne(
+			{ firstName: "Jason", lastName: "Wood" },
+			{ $pull: { tags: "c" } });
+			console.log(res);
   } catch (err) {
     console.log('task5', err);
   }
@@ -108,7 +113,11 @@ async function task5 () {
 //   ONLY if the 'b' value does not exist in the 'tags'
 async function task6 () {
   try {
-
+		const res = await usersCollection.updateOne(
+			{ firstName: "Jason", lastName: "Wood", tags: { $ne: "b" } },
+			{ $addToSet: { tags: "b" } }
+		);
+		console.log(res);
   } catch (err) {
     console.log('task6', err);
   }
@@ -117,7 +126,8 @@ async function task6 () {
 // - Delete all users by department (Support)
 async function task7 () {
   try {
-
+		const res = await usersCollection.deleteMany({department: "Support"});
+		console.log(res);
   } catch (err) {
     console.log('task7', err);
   }
