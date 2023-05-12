@@ -1,7 +1,8 @@
-import { connect, close } from './connection.js';
+import {connect, close} from './connection.js';
 
 const db = await connect();
-const usersCollection = db.collection("users");
+const usersCollection = db.collection('users');
+const articlesCollection = db.collection('articles');
 
 const run = async () => {
   try {
@@ -20,20 +21,20 @@ const run = async () => {
     // await task12();
 
     await close();
-  } catch(err) {
-    console.log('Error: ', err)
+  } catch (err) {
+    console.log('Error: ', err);
   }
-}
+};
 run();
 
 // #### Users
 // - Get users example
-async function getUsersExample () {
+async function getUsersExample() {
   try {
     const [allUsers, firstUser] = await Promise.all([
       usersCollection.find().toArray(),
       usersCollection.findOne(),
-    ])
+    ]);
 
     console.log('allUsers', allUsers);
     console.log('firstUser', firstUser);
@@ -43,67 +44,79 @@ async function getUsersExample () {
 }
 
 // - Get all users, sort them by age (ascending), and return only 5 records with firstName, lastName, and age fields.
-async function task1 () {
+async function task1() {
   try {
-		const res = await usersCollection.find({}).sort({ age: 'asc' }).limit(5).toArray();
-		console.log(res.toArray());
+    const res = await usersCollection
+      .find({})
+      .sort({age: 'asc'})
+      .limit(5)
+      .toArray();
+    console.log(res.toArray());
   } catch (err) {
-    console.error('task1', err)
+    console.error('task1', err);
   }
 }
 
 // - Add new field 'skills: []" for all users where age >= 25 && age < 30 or tags includes 'Engineering'
-async function task2 () {
+async function task2() {
   try {
-   const res = await usersCollection.updateMany({ $or: [
-			{ age: { $gte: 25, $lt: 30 } },
-			{tags: { $in: ['Engineering']}}
-		]}, {$set: {skills: []}});
-		console.log(res);
+    const res = await usersCollection.updateMany(
+      {
+        $or: [
+          {age: {$gte: 25, $lt: 30}},
+          {tags: {$in: ['Engineering']}},
+        ],
+      },
+      {$set: {skills: []}}
+    );
+    console.log(res);
   } catch (err) {
-    console.error('task2', err)
+    console.error('task2', err);
   }
 }
 
 // - Update the first document and return the updated document in one operation (add 'js' and 'git' to the 'skills' array)
 //   Filter: the document should contain the 'skills' field
 async function task3() {
-  try { 
-		const res = await	usersCollection.findOneAndUpdate(
-			{skills: {$exists: true}}, 
-			{$push: { skills: { $each: ["js", "git"]}}},
-			{returnDocument: "after"});
-			console.log(res);
+  try {
+    const res = await usersCollection.findOneAndUpdate(
+      {skills: {$exists: true}},
+      {$push: {skills: {$each: ['js', 'git']}}},
+      {returnDocument: 'after'}
+    );
+    console.log(res);
   } catch (err) {
-    console.error('task3', err)
+    console.error('task3', err);
   }
 }
 
 // - REPLACE the first document where the 'email' field starts with 'john' and the 'address state' is equal to 'CA'
 //   Set firstName: "Jason", lastName: "Wood", tags: ['a', 'b', 'c'], department: 'Support'
-async function task4 () {
-  try { 
-const res = await usersCollection.findOneAndReplace(
-		{ email: { $regex: /^john/i }, "address.state": "CA" }, 
-		{
-			firstName: "Jason", 
-		lastName: "Wood", 
-		tags: ['a', 'b', 'c'], 
-		department: 'Support' 
-});
-console.log(res);
+async function task4() {
+  try {
+    const res = await usersCollection.findOneAndReplace(
+      {email: {$regex: /^john/i}, 'address.state': 'CA'},
+      {
+        firstName: 'Jason',
+        lastName: 'Wood',
+        tags: ['a', 'b', 'c'],
+        department: 'Support',
+      }
+    );
+    console.log(res);
   } catch (err) {
     console.log('task4', err);
   }
 }
 
 // - Pull tag 'c' from the first document where firstName: "Jason", lastName: "Wood"
-async function task5 () {
+async function task5() {
   try {
-		const res = await usersCollection.updateOne(
-			{ firstName: "Jason", lastName: "Wood" },
-			{ $pull: { tags: "c" } });
-			console.log(res);
+    const res = await usersCollection.updateOne(
+      {firstName: 'Jason', lastName: 'Wood'},
+      {$pull: {tags: 'c'}}
+    );
+    console.log(res);
   } catch (err) {
     console.log('task5', err);
   }
@@ -111,23 +124,25 @@ async function task5 () {
 
 // - Push tag 'b' to the first document where firstName: "Jason", lastName: "Wood"
 //   ONLY if the 'b' value does not exist in the 'tags'
-async function task6 () {
+async function task6() {
   try {
-		const res = await usersCollection.updateOne(
-			{ firstName: "Jason", lastName: "Wood", tags: { $ne: "b" } },
-			{ $addToSet: { tags: "b" } }
-		);
-		console.log(res);
+    const res = await usersCollection.updateOne(
+      {firstName: 'Jason', lastName: 'Wood', tags: {$ne: 'b'}},
+      {$addToSet: {tags: 'b'}}
+    );
+    console.log(res);
   } catch (err) {
     console.log('task6', err);
   }
 }
 
 // - Delete all users by department (Support)
-async function task7 () {
+async function task7() {
   try {
-		const res = await usersCollection.deleteMany({department: "Support"});
-		console.log(res);
+    const res = await usersCollection.deleteMany({
+      department: 'Support',
+    });
+    console.log(res);
   } catch (err) {
     console.log('task7', err);
   }
@@ -139,18 +154,74 @@ async function task7 () {
 //   Find articles with type a, and update tag list with next value ['tag1-a', 'tag2-a', 'tag3']
 //   Add tags ['tag2', 'tag3', 'super'] to articles except articles with type 'a'
 //   Pull ['tag2', 'tag1-a'] from all articles
-async function task8 () {
+
+async function task8() {
   try {
-    
+    const res = await articlesCollection.bulkWrite([
+      {
+        insertOne: {
+          document: {
+            name: 'Mongodb - introduction',
+            description: 'Mongodb article description',
+            type: 'a',
+            tags: [],
+          },
+        },
+      },
+      {
+        insertOne: {
+          document: {
+            name: 'JavaScript for newbies',
+            description: 'JavaScript article description',
+            type: 'b',
+            tags: [],
+          },
+        },
+      },
+      {
+        insertOne: {
+          document: {
+            name: 'How to code and stay alive',
+            description: 'Best description ever',
+            type: 'c',
+            tags: [],
+          },
+        },
+      },
+      {
+        updateMany: {
+          filter: {type: 'a'},
+          update: {
+            $push: {tags: {$each: ['tag1-a', 'tag2-a', 'tag3']}},
+          },
+        },
+      },
+      {
+        updateMany: {
+          filter: {type: {$ne: 'a'}},
+          update: {$push: {tags: {$each: ['tag2', 'tag3', 'super']}}},
+        },
+      },
+      {
+        updateMany: {
+          filter: {},
+          update: {$pull: {tags: {$in: ['tag2', 'tag1-a']}}},
+        },
+      },
+    ]);
+    console.log(res);
   } catch (err) {
     console.error('task8', err);
   }
 }
 
 // - Find all articles that contains tags 'super' or 'tag2-a'
-async function task9 () {
+async function task9() {
   try {
-
+		const res = await articlesCollection.find({tags:{
+			$in: ['super', 'tag2-a']
+		}}).toArray();
+		console.log(res);
   } catch (err) {
     console.log('task9', err);
   }
@@ -158,28 +229,25 @@ async function task9 () {
 
 // #### Students Statistic (Aggregations)
 // - Find the student who have the worst score for homework, the result should be [ { name: <name>, worst_homework_score: <score> } ]
-async function task10 () {
+async function task10() {
   try {
-
   } catch (err) {
     console.log('task10', err);
-  } 
+  }
 }
 
 // - Calculate the average score for homework for all students, the result should be [ { avg_score: <number> } ]
-async function task11 () {
+async function task11() {
   try {
-
   } catch (err) {
     console.log('task11', err);
-  } 
+  }
 }
 
 // - Calculate the average score by all types (homework, exam, quiz) for each student, sort from the largest to the smallest value
-async function task12 () {
+async function task12() {
   try {
-
   } catch (err) {
     console.log('task12', err);
-  } 
+  }
 }
