@@ -7,7 +7,7 @@ const run = async () => {
   try {
     // await getUsersExample();
     // await task1();
-    await task2();
+    // await task2();
     // await task3();
     // await task4();
     // await task5();
@@ -28,19 +28,19 @@ run();
 
 // #### Users
 // - Get users example
-// async function getUsersExample () {
-//   try {
-//     const [allUsers, firstUser] = await Promise.all([
-//       usersCollection.find().toArray(),
-//       usersCollection.findOne(),
-//     ])
+async function getUsersExample () {
+  try {
+    const [allUsers, firstUser] = await Promise.all([
+      usersCollection.find().toArray(),
+      usersCollection.findOne(),
+    ])
 
-//     console.log('allUsers', allUsers);
-//     console.log('firstUser', firstUser);
-//   } catch (err) {
-//     console.error('getUsersExample', err);
-//   }
-// }
+    console.log('allUsers', allUsers);
+    console.log('firstUser', firstUser);
+  } catch (err) {
+    console.error('getUsersExample', err);
+  }
+}
 
 // - Get all users, sort them by age (ascending), and return only 5 records with firstName, lastName, and age fields.
 async function task1 () {
@@ -55,7 +55,10 @@ async function task1 () {
 // - Add new field 'skills: []" for all users where age >= 25 && age < 30 or tags includes 'Engineering'
 async function task2 () {
   try {
-    
+    await usersCollection.updateMany({ $or: [
+			{ age: { $gte: 25, $lt: 30 } },
+			{tags: { $in: ['Engineering']}}
+		]}, {$set: {skills: []}})
   } catch (err) {
     console.error('task2', err)
   }
@@ -64,8 +67,12 @@ async function task2 () {
 // - Update the first document and return the updated document in one operation (add 'js' and 'git' to the 'skills' array)
 //   Filter: the document should contain the 'skills' field
 async function task3() {
-  try {
-
+  try { 
+		const res = await	usersCollection.findOneAndUpdate(
+			{skills: {$exists: true}}, 
+			{$push: { skills: { $each: ["js", "git"]}}},
+			{returnDocument: "after"});
+			console.log(res);
   } catch (err) {
     console.error('task3', err)
   }
@@ -74,8 +81,15 @@ async function task3() {
 // - REPLACE the first document where the 'email' field starts with 'john' and the 'address state' is equal to 'CA'
 //   Set firstName: "Jason", lastName: "Wood", tags: ['a', 'b', 'c'], department: 'Support'
 async function task4 () {
-  try {
-
+  try { 
+await usersCollection.findOneAndReplace(
+		{ email: { $regex: /^john/i }, "address.state": "CA" }, 
+		{
+			firstName: "John", 
+		lastName: "Wood", 
+		tags: ['a', 'b', 'c'], 
+		department: 'Support' 
+})
   } catch (err) {
     console.log('task4', err);
   }
